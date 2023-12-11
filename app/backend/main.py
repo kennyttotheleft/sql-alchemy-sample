@@ -1,18 +1,12 @@
+# coding=utf-8
+
 from fastapi import Depends, FastAPI
 
-app = FastAPI()
+from backend.routers import user_router
 
-async def _get_detail() -> str:
-    return "detail-info"
+app = FastAPI()
+app.include_router(user_router.router)
 
 @app.get("/")
-def read_root():
+def get_root() -> dict:
     return {"Hello": "World"}
-
-@app.get("/items/{item_id}")
-def read_item(
-    item_id: int,
-    q: str = None,
-    detail: str = Depends(_get_detail),
-):
-    return {"item_id": item_id, "q": q, "detail": detail}

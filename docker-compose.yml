@@ -6,9 +6,60 @@ services:
       context: ./
       dockerfile: ./Dockerfile
     tty: true
+    env_file:
+      - .env
     volumes:
       - ./app:/app
     ports:
       - "8000:8000"
     environment:
       - TZ=Asia/Tokyo
+  postgres:
+    container_name: "postgres"
+    image: postgres:16.1
+    restart: always
+    command: postgres
+    environment:
+      POSTGRES_USER: postgresuser
+      POSTGRES_PASSWORD: postgrespassword
+      PGPASSWORD: postgrespassword
+      POSTGRES_DB: sqlalchemy
+      TZ: "Asia/Tokyo"
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  app-test:
+    container_name: "app-test"
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    tty: true
+    env_file:
+      - .env.test
+    volumes:
+      - ./app:/app
+    ports:
+      - "8001:8000"
+    environment:
+      - TZ=Asia/Tokyo
+  postgres-test:
+    container_name: "postgres-test"
+    image: postgres:16.1
+    restart: always
+    command: postgres
+    environment:
+      POSTGRES_USER: postgresuser
+      POSTGRES_PASSWORD: postgrespassword
+      PGPASSWORD: postgrespassword
+      POSTGRES_DB: sqlalchemytest
+      TZ: "Asia/Tokyo"
+    ports:
+      - 15432:5432
+    volumes:
+      - postgres-test:/var/lib/postgresql/data
+
+volumes:
+  postgres:
+  postgres-test:
