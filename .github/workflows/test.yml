@@ -48,6 +48,7 @@ jobs:
         run: poetry install --no-interaction
 
       - name: DB migration
+        working-directory: app
         run: poetry run python backend/db_migration.py
         env:
           DB_USER: postgresuser
