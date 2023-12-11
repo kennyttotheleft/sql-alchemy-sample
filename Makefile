@@ -36,7 +36,4 @@ test:
 test-debug:
 	docker compose exec app-test poetry run pytest --log-cli-level=DEBUG
 
-test-ci:
-	docker compose exec app-test poetry run pytest --junitxml=coverage/pytest.xml --cov-report=term-missing --cov=app --cov-branch tests/ | tee pytest-coverage.txt
-
 .PHONY: build, up, restart, stop, down, remove, install, logs, migrate, test-migrate, test, test-debug, test-ci

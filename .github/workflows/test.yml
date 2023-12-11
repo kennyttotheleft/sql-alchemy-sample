@@ -48,8 +48,7 @@ jobs:
         run: poetry install --no-interaction
 
       - name: DB migration
-        run: |
-          make test-migrate
+        run: poetry run python backend/db_migration.py
         env:
           DB_USER: postgresuser
           DB_PASS: postgrespassword
@@ -59,7 +58,7 @@ jobs:
 
       - name: Run Pytest
         working-directory: app
-        run: make test-ci
+        run: poetry run pytest --junitxml=coverage/pytest.xml --cov-report=term-missing --cov=app --cov-branch tests/ | tee pytest-coverage.txt
         continue-on-error: true
         env:
           DB_USER: postgresuser
