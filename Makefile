@@ -17,8 +17,8 @@ remove:
 	docker compose down --volumes
 
 install:
-	docker compose exec app poetry install
-	docker compose exec app-test poetry install
+	docker compose exec app poetry install --no-interaction
+	docker compose exec app-test poetry install --no-interaction
 
 migrate:
 	docker compose exec app poetry run python backend/db_migration.py
@@ -36,4 +36,7 @@ test:
 test-debug:
 	docker compose exec app-test poetry run pytest --log-cli-level=DEBUG
 
-.PHONY: build, up, restart, stop, down, remove, install, migrate, logs, test, test-debug, test-migrate
+test-ci:
+	docker compose exec app-test poetry run pytest --junitxml=coverage/pytest.xml --cov-report=term-missing --cov=app --cov-branch tests/ | tee pytest-coverage.txt
+
+.PHONY: build, up, restart, stop, down, remove, install, logs, migrate, test-migrate, test, test-debug, test-ci

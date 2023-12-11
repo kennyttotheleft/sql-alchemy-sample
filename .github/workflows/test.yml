@@ -11,6 +11,24 @@ jobs:
   pytest:
     name: Run Pytest
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16.1
+        env:
+          POSTGRES_USER: postgresuser
+          POSTGRES_PASSWORD: postgrespassword
+          PGPASSWORD: postgrespassword
+          POSTGRES_DB: sqlalchemytest
+          TZ: "Asia/Tokyo"
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -29,10 +47,26 @@ jobs:
         working-directory: app
         run: poetry install --no-interaction
 
+      - name: DB migration
+        run: |
+          make test-migrate
+        env:
+          DB_USER: postgresuser
+          DB_PASS: postgrespassword
+          DB_NAME: sqlalchemytest
+          DB_HOST: postgres
+          DB_PORT: 5432
+
       - name: Run Pytest
         working-directory: app
-        run: poetry run pytest --junitxml=coverage/pytest.xml --cov-report=term-missing --cov=app --cov-branch tests/ | tee pytest-coverage.txt
+        run: make test-ci
         continue-on-error: true
+        env:
+          DB_USER: postgresuser
+          DB_PASS: postgrespassword
+          DB_NAME: sqlalchemytest
+          DB_HOST: postgres
+          DB_PORT: 5432
 
       - name: Pytest coverage comment
         uses: MishaKav/pytest-coverage-comment@main
