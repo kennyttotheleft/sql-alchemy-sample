@@ -54,7 +54,7 @@ jobs:
           DB_USER: postgresuser
           DB_PASS: postgrespassword
           DB_NAME: sqlalchemytest
-          DB_HOST: postgres
+          DB_HOST: localhost
           DB_PORT: 5432
 
       - name: Run Pytest
@@ -65,7 +65,7 @@ jobs:
           DB_USER: postgresuser
           DB_PASS: postgrespassword
           DB_NAME: sqlalchemytest
-          DB_HOST: postgres
+          DB_HOST: localhost
           DB_PORT: 5432
 
       - name: Pytest coverage comment
