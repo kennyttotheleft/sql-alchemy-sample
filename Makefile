@@ -1,4 +1,7 @@
-build:
+
+build: build-container install
+
+build-container:
 	docker compose up -d --build
 
 up:
@@ -36,4 +39,4 @@ test:
 test-debug:
 	docker compose exec app-test poetry run pytest --log-cli-level=DEBUG
 
-.PHONY: build, up, restart, stop, down, remove, install, logs, migrate, test-migrate, test, test-debug, test-ci
+.PHONY: build, build-container, install, up, restart, stop, down, remove, logs, migrate, test-migrate, test, test-debug, test-ci
