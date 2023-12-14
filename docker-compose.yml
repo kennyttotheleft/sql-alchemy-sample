@@ -14,21 +14,63 @@ services:
       - "8000:8000"
     environment:
       - TZ=Asia/Tokyo
-  postgres:
-    container_name: "postgres"
+  postgres-primary:
+    container_name: "postgres-primary"
     image: postgres:16.1
     restart: always
-    command: postgres
+    command: -c 'config_file=/etc/postgresql/postgresql.conf' -c 'hba_file=/etc/postgresql/pg_hba.conf'
     environment:
       POSTGRES_USER: postgresuser
       POSTGRES_PASSWORD: postgrespassword
       PGPASSWORD: postgrespassword
       POSTGRES_DB: sqlalchemy
+      DB_REPLICATION_SLOT: replication_slot_1
+      DB_REPLICATION_USER: postgresreplicator
+      DB_REPLICATION_PASSWORD: postgrespassword
       TZ: "Asia/Tokyo"
     ports:
-      - 5432:5432
+      - 127.0.0.1:5432:5432
     volumes:
       - postgres:/var/lib/postgresql/data
+      - ./.docker/postgres-primary/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./.docker/postgres-primary/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./.docker/postgres-primary/init.sh:/docker-entrypoint-initdb.d/init.sh
+    healthcheck:
+      test: pg_isready -U postgresuser -d sqlalchemy
+      interval: 1s
+      timeout: 1s
+      retries: 5
+  postgres-replica:
+    container_name: "postgres-replica"
+    image: postgres:16.1
+    restart: always
+    entrypoint: /etc/postgresql/entrypoint.sh
+    environment:
+      POSTGRES_USER: postgresuser
+      POSTGRES_PASSWORD: postgrespassword
+      PGPASSWORD: postgrespassword
+      POSTGRES_DB: sqlalchemy
+      DB_PRIMARY_HOST: postgres-primary
+      DB_PRIMARY_PORT: 5432
+      DB_REPLICATION_SLOT: replication_slot_1
+      DB_REPLICATION_USER: postgresreplicator
+      DB_REPLICATION_PASSWORD: postgrespassword
+      TZ: "Asia/Tokyo"
+    ports:
+      - 127.0.0.1:5433:5432
+    volumes:
+      - postgres-replica:/var/lib/postgresql/data
+      - ./.docker/postgres-replica/entrypoint.sh:/etc/postgresql/entrypoint.sh
+      - ./.docker/postgres-replica/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./.docker/postgres-replica/pg_hba.conf:/etc/postgresql/pg_hba.conf
+    healthcheck:
+      test: pg_isready -U postgresuser -d sqlalchemy
+      interval: 1s
+      timeout: 1s
+      retries: 5
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
 
   app-test:
     container_name: "app-test"
@@ -62,4 +104,5 @@ services:
 
 volumes:
   postgres:
+  postgres-replica:
   postgres-test:
